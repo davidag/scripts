@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Filter the output of fdupes -S and outputs de results ordered by size
+# Usage: $ fdupes -r1Sn dir1 dir2 dir3 | fdupes-size-filter > duplicates
+
+files=()
+current=""
+while read line
+do
+    if [[ $line = *bytes\ each* ]]; then
+        current="$line"
+    else
+        current="$current $line"
+        files+=( "$current" )
+    fi
+done < /dev/stdin
+
+# https://stackoverflow.com/questions/7442417/how-to-sort-an-array-in-bash
+IFS=$'\n' sorted_files=($(sort --general-numeric-sort --reverse <<<"${files[*]}"))
+printf '%s\n' "${sorted_files[@]}"
+unset IFS
+
