@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Customize these
+readonly AUTHOR=""
+readonly CATEGORY=""
+readonly STATUS="published"
+readonly OUTDIR="./output"
+
+# Global constants
+readonly PROGNAME=$(basename $0)
+readonly PROGDIR=$(readlink -m $(dirname $0))
+readonly BACKUPFILE="$1"
+readonly TMPDIR="/tmp/tumblr"
+readonly REMOVETAGS="s/(<.*?>)+(.*)(<.*?>)/\2/"
+
+function join_by { local IFS="$1"; shift; echo "$*"; }
+
+if [ ! -f "$BACKUPFILE" ]; then
+    echo "ERROR: Invalid or missing argument"
+    echo "Usage: $PROGNAME tumblr-backup.zip"
+    exit 1
+fi
+
+# -o: overwrite existing files
+# -j: junk paths
+# -d: directory to which extract files
+unzip -oj $BACKUPFILE -d $TMPDIR > /dev/null || { echo "ERROR: Decompressing zip"; exit 1; }
+
+untitled_counter=0
+
+for post in $(ls "$TMPDIR" | grep -E '^[0-9]+\.html')
+do
+    title=$(cat $TMPDIR/$post | grep -E '<h2>(.*)</h2>' | head -n1 | sed -E $REMOVETAGS)
+    if [ "$title" = "" ]; then
+        title="untitled-$untitled_counter"
+        slug=$title
+        let untitled_counter++
+    else
+        slug=$($PROGDIR/slugify "$title")
+    fi
+
+    date=$(cat $TMPDIR/$post | grep -E 'class=date' | sed -E $REMOVETAGS)
+    author=$AUTHOR
+    category=$CATEGORY
+    IFS=$'\n' tags=($(cat $TMPDIR/$post | sed -En 's/(<p class=tags>){0,1}<a .+?>#(.*)<\/a>/\2/p'))
+    unset IFS
+    tags=$(join_by , "${tags[@]}")
+
+    destfile=$OUTDIR/${slug}.md
+    mkdir -p $OUTDIR 2> /dev/null
+    printf "Title: %s\n" "$title" > $destfile
+    printf "Date: %s\n" "$date" >> $destfile
+    printf "Author: %s\n" "$author" >> $destfile
+    printf "Category: %s\n" "$category" >> $destfile
+    printf "Tags: %s\n" "$tags" >> $destfile
+    printf "Slug: %s\n" "$slug" >> $destfile
+    printf "Status: published\n\n" >> $destfile
+
+    $(pandoc -f html -t commonmark $TMPDIR/$post >> $destfile)
+done
+
+rm -r $TMPDIR
