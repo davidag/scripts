@@ -1,5 +1,7 @@
 #!/bin/sh
 
+USER=david
+
 set -ex
 
 # todo: switch to testing
@@ -27,3 +29,13 @@ apt install keepass2
 # command-line tools
 apt install --yes tree unzip curl lsof
 
+# debian tools
+# - debconf-utils: installs debconf-get-selections to automate package installation
+apt install debconf-utils
+
+# vagrant with qemu-kvm
+apt install vagrant
+apt install qemu-kvm libvirt-daemon-system
+
+adduser $USER libvirt
+adduser $USER libvirt-qemu
