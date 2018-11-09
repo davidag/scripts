@@ -39,3 +39,9 @@ apt install qemu-kvm libvirt-daemon-system
 
 adduser $USER libvirt
 adduser $USER libvirt-qemu
+
+# sound
+apt install pulseaudio pavucontrol
+
+# avoid entering ssh keys on every terminal
+apt install keychain
