@@ -40,6 +40,10 @@ apt install debconf-utils
 apt install apt-file
 apt update
 
+# watson for time logging
+apt install watson
+wget -O /etc/bash_completion.d/watson https://raw.githubusercontent.com/TailorDev/Watson/master/watson.completion
+
 # vagrant with qemu-kvm
 apt install vagrant
 apt install qemu-kvm libvirt-daemon-system
@@ -60,6 +64,9 @@ chmod +x protonvpn-cli.sh
 ./protonvpn-cli.sh --install
 rm protonvpn-cli.sh
 
+# general development
+apt-get install exuberant-ctags
+
 # php & composer
 apt install php php-xml php-gd php-mbstring php-curl
 wget -O composer-setup.php https://getcomposer.org/installer
@@ -67,4 +74,4 @@ php composer-setup.php --install-dir=/usr/local/bin --filename=composer
 rm composer-setup.php
 
 # python3 development
-apt install python3 python3-venv
+apt-get install python3 python3-venv
