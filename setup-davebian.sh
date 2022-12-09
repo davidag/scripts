@@ -40,10 +40,6 @@ apt install debconf-utils
 apt install apt-file
 apt update
 
-# watson for time logging
-apt install watson
-wget -O /etc/bash_completion.d/watson https://raw.githubusercontent.com/TailorDev/Watson/master/watson.completion
-
 # vagrant with qemu-kvm
 apt install vagrant
 apt install qemu-kvm libvirt-daemon-system
