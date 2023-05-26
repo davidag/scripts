@@ -4,6 +4,7 @@ echo "Installing apt packages..."
 sudo apt-get -q --yes install \
 	i3 \
 	tmux \
+	ripgrep \
 	curl \
 	arandr \
 	pavucontrol \
@@ -24,7 +25,9 @@ fi
 
 echo "Installing Rust tools..."
 
-cargo install hexyl
+cargo install \
+	hexyl \
+	bat
 
 [ -d "opt/nvim-linux64" ] && echo "Updating Neovim..." || echo "Installing Neovim..."
 
