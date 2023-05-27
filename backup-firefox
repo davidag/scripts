@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# from: https://support.mozilla.org/en-US/kb/recovering-important-data-from-an-old-profile
+FILES="places.sqlite favicons.sqlite key4.db logins.json permissions.sqlite search.json.mozlz4 persdict.dat cookies.sqlite cert9.db handlers.json"
+
+
+cd $HOME/.mozilla/firefox
+
+names="$(awk -F "=" '/Name/ {print $2}' profiles.ini)"
+read -d ' ' -r -a names <<< "$names"
+
+paths=$(awk -F "=" '/Path/ {print $2}' profiles.ini)
+read -d ' ' -r -a paths <<< "$paths"
+
+for index in "${!names[@]}"; do
+	pushd ${paths[index]}
+
+	tar --create --verbose --gzip \
+		--file $HOME/$(hostname)-$USERNAME-firefox-${names[index]}.tar.gz \
+		$FILES
+
+	popd
+done
