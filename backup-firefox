@@ -1,10 +1,25 @@
 #!/bin/bash
 
+set -eu
+
+[ -n "$1" -a ! -d "$1" ] && { echo "invalid destination folder $1"; exit 1; }
+
+if [ -d "$HOME/.mozilla/firefox" ]; then
+	ffdir="$HOME/.mozilla/firefox"
+elif [ -d "$HOME/snap/firefox/common/.mozilla/firefox" ]; then
+	ffdir="$HOME/snap/firefox/common/.mozilla/firefox"
+else
+	echo "firefox folder not found, aborting."
+	exit 1
+fi
+
+dstdir=${1:-$HOME}
+dstdir=$(realpath $dstdir)
+
 # from: https://support.mozilla.org/en-US/kb/recovering-important-data-from-an-old-profile
 FILES="places.sqlite favicons.sqlite key4.db logins.json permissions.sqlite search.json.mozlz4 persdict.dat cookies.sqlite cert9.db handlers.json"
 
-
-cd $HOME/.mozilla/firefox
+cd $ffdir
 
 names="$(awk -F "=" '/Name/ {print $2}' profiles.ini)"
 read -d ' ' -r -a names <<< "$names"
@@ -16,7 +31,7 @@ for index in "${!names[@]}"; do
 	pushd ${paths[index]}
 
 	tar --create --verbose --gzip \
-		--file $HOME/$(hostname)-$USERNAME-firefox-${names[index]}.tar.gz \
+		--file $dstdir/$(hostname)-$USERNAME-firefox-${names[index]}-$(date +%Y%m%d)-$(date +%H%M).tgz \
 		$FILES
 
 	popd
