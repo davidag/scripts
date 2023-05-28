@@ -4,7 +4,7 @@ set -u
 FFX_INSTALL_PATH="/opt"
 
 # Get real URL (302 redirect)
-FFX_URL=$(curl -s 'https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=es-ES' | grep -o 'http.*bz2')
+FFX_URL=$(curl -s 'https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US' | grep -o 'http.*bz2')
 
 # Get current version
 FFX_CUR=$(echo $FFX_URL | sed "s/.*firefox-\([0-9.]*[0-9]\).*/\1/")
