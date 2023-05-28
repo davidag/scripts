@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -eu
+
+filename=""
+verbose=""
+
+while getopts vf: opt; do
+	case $opt in
+		f) filename="$OPTARG" ;;
+		v) verbose="--verbose" ;;
+	esac
+done
+
+BACKUP_FILE="${filename:-$(hostname)-$USERNAME-home-$(date +%Y%m%d)-$(date +%H%M).tar}"
+
+[ -f "$BACKUP_FILE" ] && { echo "$filename already exists, aborting." ; exit 1 ; }
+
+BACKUP_CONFIG_INCLUDE="~/local/config/backup-home-include"
+
+cd $HOME
+
+# .config directory
+tar --create $verbose --file=$BACKUP_FILE \
+	--exclude '*[cC][aA][cC][hH][eE]*' \
+	--exclude '*[lL][oO][gG][sS]*' \
+	--exclude '[tT][mM][pP]' \
+	--exclude-tag-under=EXCLUDED \
+	.config
+
+# save what config is excluded
+find .config -name EXCLUDED > config-excluded
+tar --append $verbose --file=$BACKUP_FILE config-excluded
+rm config-excluded
+
+# dot files in home
+find . -maxdepth 1 -name '\.*' -type f -print0 | \
+	cut -z -d'/' -f2- | \
+	xargs -0 tar --append $verbose --file=$BACKUP_FILE
+
+# custom folders in home
+[ -f $BACKUP_CONFIG_INCLUDE ] && cat $BACKUP_CONFIG_INCLUDE | \
+	xargs tar --append $verbose --file=$BACKUP_FILE --exclude-tag-under=EXCLUDED
+
+exit 0
