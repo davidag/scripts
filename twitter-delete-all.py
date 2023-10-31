@@ -20,8 +20,9 @@ import argparse
 import json
 import logging
 import os
+import time
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from sre_constants import MAXGROUPS
 
@@ -50,11 +51,17 @@ def get_oauth_keys() -> tuple[str]:
     return consumer_key, consumer_secret, access_token, access_token_secret
 
 
-def read_start_pos(filename: Path) -> int:
+def read_start_pos_and_mtime(filename: Path) -> tuple[int, datetime]:
+    start_pos = 0
+    mtime = datetime.now() - timedelta(days=1)
+
     try:
-        return int(filename.read_text())
+        start_pos = int(filename.read_text())
+        mtime = datetime.fromtimestamp(filename.stat().st_mtime)
     except:
-        return 0
+        pass
+
+    return start_pos, mtime
 
 
 def write_start_pos(filename: Path, new_pos: int):
@@ -145,15 +152,19 @@ def main():
     tweets = get_tweets_from_backup(args.twitter_backup)
 
     # 2) Read start position from file
-    start_position = read_start_pos(NEXT_START_POSITION_FILE)
+    start_position, last_mod_dt = read_start_pos_and_mtime(NEXT_START_POSITION_FILE)
+
+    # 3) Make sure a day has passed since our last API request
+    if (diff_td := datetime.now() - last_mod_dt) < timedelta(days=1):
+        time.sleep(diff_td.total_seconds() + 1)
     
-    # 3) Delete tweets forever using the API (limited to 50)
+    # 4) Delete tweets forever using the API (limited to 50)
     count = delete_tweets_with_api(oauth_keys, tweets, start_position, MAX_DELETES_PER_RUN)
 
-    # 4) Write next start position
+    # 5) Write next start position
     write_start_pos(NEXT_START_POSITION_FILE, start_position + count)
  
-    # 5) Notify the user of the state
+    # 6) Notify the user of the state
     notify_user(count)
 
 
