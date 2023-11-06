@@ -156,7 +156,9 @@ def main():
 
     # 3) Make sure a day has passed since our last API request
     if (diff_td := datetime.now() - last_mod_dt) < timedelta(days=1):
-        time.sleep(diff_td.total_seconds() + 1)
+        wait_time = timedelta(days=1, seconds=1) - diff_td
+        logger.warning(f"Waiting {wait_time.total_seconds() / 60:.1f} minutes")
+        time.sleep(wait_time.total_seconds())
     
     # 4) Delete tweets forever using the API (limited to 50)
     count = delete_tweets_with_api(oauth_keys, tweets, start_position, MAX_DELETES_PER_RUN)
@@ -169,9 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.DEBUG,
-    #     format='%(asctime)s %(levelname)-8s %(message)s',
-    #     datefmt='%Y-%m-%d %H:%M:%S',
-    #     filename="logging.txt", filemode='a')
-
     main()
