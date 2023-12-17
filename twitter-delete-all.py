@@ -24,7 +24,6 @@ import time
 import zipfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from sre_constants import MAXGROUPS
 
 import filetype
 import requests
