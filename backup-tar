@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -eu
+
+clean() {
+	[ -e "${filename:-}" ] && rm -f "$filename" >/dev/null 2>&1
+	return 0
+}
+
+die() {
+	echo "Error: $1" >&2
+	exit 1
+}
+
+timestamp="$(date +%Y%m%d)-$(date +%H%M)"
+src_path=""
+dst_path=""
+verbose=""
+encrypted=0
+
+while getopts "ves:d:" opt; do
+	case $opt in
+        s) src_path="$(realpath -m $OPTARG)" ;;
+		d) dst_path="$OPTARG" ;;
+        e) encrypted=1 ;;
+		v) verbose="-v" ;;
+	esac
+done
+
+[ -d "$src_path" ] || die "@ folder not available, skipping: $src_path"
+
+trap clean EXIT INT
+
+filename="${src_path##*/}-${timestamp}.tgz"
+
+if [ "$encrypted" -eq 1 ]; then
+    filename="${filename}.gpg"
+    enctar $src_path $filename
+else
+    pushd $src_path
+    tar $verbose --create --dereference --file=$filename .
+    popd
+fi
+
+if [[ "$dst_path" = *:* ]]; then
+    scp $verbose $filename $dst_path
+else
+    cp $verbose $filename $dst_path
+fi
+
+rm $filename
