@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# This script synchronizes all contents (-t full) or all subfolders (-t sub) of
+# the given src_path into dst_path. By default, only subfolders are synchronized
+# allowing for a more flexible approach where source doesn't have to completely
+# match the destination.
+
+set -eu
+
+die() {
+	echo "Error: $1" >&2
+	exit 1
+}
+
+rsync_exclude="$HOME/local/config/rsync_exclude"
+src_path=""
+dst_path=""
+verbose=""
+type=0
+
+while getopts "vt:s:d:" opt; do
+	case $opt in
+		s) src_path="$OPTARG" ;;
+		d) dst_path="$OPTARG" ;;
+        t) type="$OPTARG" ;;
+		v) verbose="--verbose" ;;
+	esac
+done
+
+[ -d "$src_path" -a -d "$dst_path" ] || die "@ folders not ready, skipping: $src_path -> $dst_path"
+
+
+if [ "$type" = "sub" ]; then
+    # Sync subfolders
+    echo "# syncing subfolders from $src_path to $dst_path..."
+    subprojects=$(find "$src_path" -mindepth 1 -maxdepth 1 -type d)
+    for prj_dir in $subprojects; do
+        prj_dir="$(basename $prj_dir)"  # get the folder name
+        echo "## syncing $prj_dir..."
+        # --archive == -rlptgoD
+        rsync $verbose --archive -i --update --delete \
+            --exclude-from="${rsync_exclude}" \
+            "${src_path}/${prj_dir}/" \
+            "${dst_path}/${prj_dir}"
+    done
+elif [ "$type" = "full" ]; then
+    # Full sync
+    echo "# syncing full from $src_path to $dst_path..."
+    rsync $verbose --archive -i --update --delete \
+        --exclude-from=${rsync_exclude} \
+        ${src_path}/ $dst_path
+else
+    echo "@ invalid type of sync: $type"
+    exit 1
+fi
