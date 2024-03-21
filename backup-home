@@ -39,7 +39,7 @@ find . -maxdepth 1 -name '\.*' -type f -print0 | \
 	xargs -0 tar --append $verbose --file=$BACKUP_FILE
 
 # custom folders in home
-[ -f $BACKUP_CONFIG_INCLUDE ] && cat $BACKUP_CONFIG_INCLUDE | \
-	xargs tar --append $verbose --file=$BACKUP_FILE --exclude-tag-under=EXCLUDED
+[ -f $BACKUP_CONFIG_INCLUDE ] \
+    && cat $BACKUP_CONFIG_INCLUDE | xargs tar --append $verbose \
+        --file=$BACKUP_FILE --exclude-tag-under=EXCLUDED
 
-exit 0
