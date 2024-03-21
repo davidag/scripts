@@ -31,14 +31,14 @@ done
 
 trap clean EXIT INT
 
-filename="${src_path##*/}-${timestamp}.tgz"
+filename="$HOME/${src_path##*/}-${timestamp}.tgz"
 
 if [ "$encrypted" -eq 1 ]; then
     filename="${filename}.gpg"
     enctar $src_path $filename
 else
     pushd $src_path
-    tar $verbose --create --dereference --file=$filename .
+    tar $verbose --create --gzip --dereference --file=$filename .
     popd
 fi
 
