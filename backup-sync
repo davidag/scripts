@@ -8,27 +8,33 @@
 set -eu
 
 die() {
-	echo "Error: $1" >&2
+	echo "error: $1" >&2
 	exit 1
 }
 
 rsync_exclude="$HOME/local/config/rsync_exclude"
+rsync_opts="--checksum --archive --itemize-changes --update --delete"
 src_path=""
 dst_path=""
 verbose=""
+mounted=""
 type=0
 
-while getopts "vt:s:d:" opt; do
+while getopts "vt:s:d:m:" opt; do
 	case $opt in
 		s) src_path="$OPTARG" ;;
 		d) dst_path="$OPTARG" ;;
         t) type="$OPTARG" ;;
 		v) verbose="--verbose" ;;
+        m) mounted="$OPTARG" ;;
 	esac
 done
 
-[ -d "$src_path" -a -d "$dst_path" ] || die "@ folders not ready, skipping: $src_path -> $dst_path"
+[ -d "$src_path" -a -d "$dst_path" ] || die "folders not ready, skipping: $src_path -> $dst_path"
 
+[ -z "$mounted" ] \
+    || mount | grep --word-regexp --quiet "$mounted" \
+    || die "$mounted not mounted, skipping: $src_path -> $dst_path"
 
 if [ "$type" = "sub" ]; then
     # Sync subfolders
@@ -38,7 +44,7 @@ if [ "$type" = "sub" ]; then
         prj_dir="$(basename $prj_dir)"  # get the folder name
         echo "## syncing $prj_dir..."
         # --archive == -rlptgoD
-        rsync $verbose --archive -i --update --delete \
+        rsync $verbose $rsync_opts \
             --exclude-from="${rsync_exclude}" \
             "${src_path}/${prj_dir}/" \
             "${dst_path}/${prj_dir}"
@@ -46,7 +52,7 @@ if [ "$type" = "sub" ]; then
 elif [ "$type" = "full" ]; then
     # Full sync
     echo "# syncing full from $src_path to $dst_path..."
-    rsync $verbose --archive -i --update --delete \
+    rsync $verbose $rsync_opts \
         --exclude-from=${rsync_exclude} \
         ${src_path}/ $dst_path
 else
