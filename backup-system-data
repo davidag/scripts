@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -eu
+
+filename=""
+verbose=""
+
+while getopts vf: opt; do
+	case $opt in
+		f) filename="$OPTARG" ;;
+		v) verbose="--verbose" ;;
+	esac
+done
+
+
+BACKUP_FILE="${filename:-$HOME/tmp/$(hostname)-packages.tar.gz}"
+
+# dpkg
+#######
+PKG_DATA_FILE="dpkg.txt"
+
+dpkg -l > $PKG_DATA_FILE
+tar --create $verbose --file=$BACKUP_FILE /etc/apt $PKG_DATA_FILE
+rm $PKG_DATA_FILE
+
+# cargo
+########
+
+# TODO
