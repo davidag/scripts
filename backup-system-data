@@ -13,17 +13,16 @@ while getopts vf: opt; do
 done
 
 
-BACKUP_FILE="${filename:-$HOME/tmp/$(hostname)-packages.tar.gz}"
+BACKUP_FILE="${filename:-$(hostname)-system-$(date +%Y%m%d)-$(date +%H%M).tar}"
 
 # dpkg
 #######
 PKG_DATA_FILE="dpkg.txt"
 
 dpkg -l > $PKG_DATA_FILE
-tar --create $verbose --file=$BACKUP_FILE /etc/apt $PKG_DATA_FILE
+tar --create $verbose --file=$BACKUP_FILE $PKG_DATA_FILE
 rm $PKG_DATA_FILE
 
-# cargo
-########
-
-# TODO
+# etc
+#####
+sudo tar --append $verbose --file=$BACKUP_FILE /etc
