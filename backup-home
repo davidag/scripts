@@ -43,3 +43,22 @@ find . -maxdepth 1 -name '\.*' -type f -print0 | \
     && cat $BACKUP_CONFIG_INCLUDE | xargs tar --append $verbose \
         --file=$BACKUP_FILE --exclude-tag-under=EXCLUDED
 
+# snap packages
+snap list > snap-list.txt
+tar --append $verbose --file=$BACKUP_FILE snap-list.txt
+rm snap-list.txt
+
+# opt programs
+ls ~/opt > programs-opt.txt
+tar --append $verbose --file=$BACKUP_FILE programs-opt.txt
+rm programs-opt.txt
+
+# cargo apps
+cargo install --list > cargo-binaries.txt
+tar --append $verbose --file=$BACKUP_FILE cargo-binaries.txt
+rm cargo-binaries.txt
+
+# golang apps
+ls $(go env GOPATH)/bin > golang-binaries.txt
+tar --append $verbose --file=$BACKUP_FILE golang-binaries.txt
+rm golang-binaries.txt
