@@ -18,24 +18,30 @@ rsync_opts="--archive --itemize-changes --update --delete"
 src_path=""
 dst_path=""
 verbose=""
-mounted=""
+src_mounted=""
+dst_mounted=""
 type=0
 
-while getopts "vt:s:d:m:" opt; do
+while getopts "vt:s:d:m:n:" opt; do
 	case $opt in
 		s) src_path="$OPTARG" ;;
 		d) dst_path="$OPTARG" ;;
         t) type="$OPTARG" ;;
 		v) verbose="--verbose" ;;
-        m) mounted="$OPTARG" ;;
+        m) src_mounted="$OPTARG" ;;
+        n) dst_mounted="$OPTARG" ;;
 	esac
 done
 
 [ -d "$src_path" -a -d "$dst_path" ] || die "folders not ready, skipping: $src_path -> $dst_path"
 
-[ -z "$mounted" ] \
-    || mount | grep --word-regexp --quiet "$mounted" \
-    || die "$mounted not mounted, skipping: $src_path -> $dst_path"
+[ -z "$src_mounted" ] \
+    || mount | grep --word-regexp --quiet "$src_mounted" \
+    || die "$src_mounted not mounted, skipping: $src_path -> $dst_path"
+
+[ -z "$dst_mounted" ] \
+    || mount | grep --word-regexp --quiet "$dst_mounted" \
+    || die "$dst_mounted not mounted, skipping: $src_path -> $dst_path"
 
 if [ "$type" = "sub" ]; then
     # Sync subfolders
