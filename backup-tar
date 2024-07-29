@@ -8,8 +8,8 @@ clean() {
 }
 
 die() {
-	echo "Error: $1" >&2
-	exit 1
+	echo "Not run: $1" >&2
+	exit 0
 }
 
 timestamp="$(date +%Y%m%d)-$(date +%H%M)"
@@ -27,7 +27,7 @@ while getopts "ves:d:" opt; do
 	esac
 done
 
-[ -d "$src_path" ] || die "@ folder not available, skipping: $src_path"
+[ -d "$src_path" -a -d "$dst_path" ] || die "@ folder not available, skipping: $src_path -> $dst_path"
 
 trap clean EXIT INT
 
